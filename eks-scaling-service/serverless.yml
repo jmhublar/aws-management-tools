@@ -1,0 +1,24 @@
+service: eks-scaling-service
+
+provider:
+  name: aws
+  runtime: python3.8
+  region: ${opt:region, 'us-east-1'} # default region is us-east-1, can be overridden with --region
+  environment: # Service wide environment variables
+    AWS_ACCOUNT_ID: ${param:accountId} # can be overridden with --accountId
+
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "eks:ListClusters"
+        - "eks:DescribeNodegroup"
+        - "eks:UpdateNodegroupConfig"
+        - "eks:ListTagsForResource"
+        - "eks:ListNodegroups"
+      Resource: "*"
+
+functions:
+  scaleDown:
+    handler: handler.scale_down
+    events:
+      - schedule: cron(0 2 * * ? *)
